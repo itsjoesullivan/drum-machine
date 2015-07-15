@@ -13,7 +13,7 @@
 <h1>sm-808</h1>
 <div ng-app="drumMachineApp" ng-controller="RhythmCtrl">
   <div ng-repeat="pattern in rhythm.patterns">
-    <span ng-class="{cursor: cursor === $index}" ng-repeat="beat in pattern.beats track by $index">
+    <span ng-class="{cursor: Math.floor(cursor) === $index}" ng-repeat="beat in pattern.beats track by $index">
       <input type="checkbox"
         ng-model="hi"
         ng-change="change(pattern.sound, $index)"
@@ -25,6 +25,7 @@
   <br />
   <button ng-click="play()" >Play</button>
   <button ng-click="pause()" >Pause</button>
+  <button ng-click="stop()" >Stop</button>
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
