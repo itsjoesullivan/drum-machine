@@ -1,5 +1,8 @@
+AudioContext = window.AudioContext || webkitAudioContext;
+OfflineAudioContext = window.OfflineAudioContext || webkitOfflineAudioContext;
+
 var drumMachineApp = angular.module("drumMachineApp", []);
-drumMachineApp.controller("RhythmCtrl", function($scope) {
+drumMachineApp.controller("RhythmCtrl", function($scope, $q) {
 
   $scope.context = new AudioContext();
 
@@ -47,7 +50,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
       source.loop = true;
       source.start($scope.context.currentTime, $scope.cursor * $scope.getTickLength());
       if ($scope.playbackSource) {
-        $scope.playbackSource.stop();
+        $scope.playbackSource.stop($scope.context.currentTime);
       }
       $scope.playbackSource = source;
     });
@@ -57,14 +60,28 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
     return 60 / $scope.tempo / 4;
   };
 
+  $scope.loadBuffer = function(url) {
+    var context = new OfflineAudioContext(2, 1, 44100);
+    return $q(function(resolve, reject) {
+      var request = new XMLHttpRequest();
+      request.open('GET', url, true);
+      request.responseType = 'arraybuffer';
+      request.onload = function() {
+        context.decodeAudioData(request.response, resolve, reject);
+      };
+      request.onerror = reject;
+      request.send();
+    });
+  };
+
   $scope._buffers = {};
-  loadBuffer("snare.wav").then(function(buffer) {
+  $scope.loadBuffer("snare.wav").then(function(buffer) {
     $scope._buffers["snare"] = buffer;
   });
-  loadBuffer("kick.wav").then(function(buffer) {
+  $scope.loadBuffer("kick.wav").then(function(buffer) {
     $scope._buffers["kick"] = buffer;
   });
-  loadBuffer("hat.wav").then(function(buffer) {
+  $scope.loadBuffer("hat.wav").then(function(buffer) {
     $scope._buffers["hat"] = buffer;
   });
 
@@ -74,7 +91,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
 
   $scope.renderPattern = function() {
     var startTime = $scope.context.currentTime;
-    return new Promise(function(resolve, reject) {
+    return $q(function(resolve, reject) {
       var tickLength = $scope.getTickLength();
       if ($scope.tempo < 10) {
         reject(new Error("Tempo is... too slow."));
@@ -95,7 +112,9 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
       context.startRendering();
       context.oncomplete = function(e) {
         resolve(e.renderedBuffer);
-        console.log("Rendering loop took " + ($scope.context.currentTime - startTime).toFixed(3) * 1000 + "ms");
+        console.log("Rendering loop took " +
+          ($scope.context.currentTime - startTime).toFixed(3) * 1000 +
+        "ms");
       };
     });
   };
@@ -103,7 +122,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
   // Pause the pattern
   $scope.pause = function() {
     if ($scope.playbackSource) {
-      $scope.playbackSource.stop();
+      $scope.playbackSource.stop($scope.context.currentTime);
     }
 
     var tickLength = $scope.getTickLength();
@@ -158,15 +177,3 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
 });
 
 
-function loadBuffer(url, context) {
-  if (!context) {
-    context = new OfflineAudioContext(2, 1, 44100);
-  }
-  return fetch(url).then(function(response) {
-    return response.arrayBuffer();
-  }).then(function(arrayBuffer) {
-    return new Promise(function(resolve, reject) {
-      context.decodeAudioData(arrayBuffer, resolve, reject);
-    });
-  });
-}
