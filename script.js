@@ -95,7 +95,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
       context.startRendering();
       context.oncomplete = function(e) {
         resolve(e.renderedBuffer);
-        console.log("Rendering loop took " + ($scope.context.currentTime - startTime) + "s");
+        console.log("Rendering loop took " + ($scope.context.currentTime - startTime).toFixed(3) * 1000 + "ms");
       };
     });
   };
