@@ -16,7 +16,7 @@
     <span ng-class="{cursor: Math.floor(cursor) === $index}" ng-repeat="beat in pattern.beats track by $index">
       <input type="checkbox"
         ng-model="hi"
-        ng-change="change(pattern.sound, $index)"
+        ng-change="patternChange(pattern.sound, $index)"
         ng-checked="beat > 0" />
     </span>
     <br />
@@ -29,6 +29,7 @@
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+<script src="fetch.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
