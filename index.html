@@ -1,21 +1,40 @@
 <!doctype html>
 <html>
 <head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width">
 <style>
+body {
+  font-family: monospace;
+}
+#app {
+  max-width: 600px;
+  margin: auto;
+}
+h1 {
+  text-align: center;
+}
 .cursor {
   background-color: yellow;
+}
+label {
+  display: inline-block;
+  width: 50px;
+}
+input[type=number] {
+  margin: 1em;
 }
 </style>
 </head>
 <body>
 
 <h1>sm-808</h1>
-<div ng-app="drumMachineApp" ng-controller="RhythmCtrl">
+<div id="app" ng-app="drumMachineApp" ng-controller="RhythmCtrl">
   <div ng-repeat="pattern in rhythm.patterns">
+    <label>{{ pattern.sound }}</label>
     <span ng-class="{cursor: Math.floor(cursor) === $index}" ng-repeat="beat in pattern.beats track by $index">
       <input type="checkbox"
-        ng-model="hi"
+        ng-model="tmp"
         ng-change="patternChange(pattern.sound, $index)"
         ng-checked="beat > 0" />
     </span>
