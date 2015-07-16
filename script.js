@@ -3,10 +3,12 @@ OfflineAudioContext = window.OfflineAudioContext || webkitOfflineAudioContext;
 
 var drumMachineApp = angular.module("drumMachineApp", []);
 
+// A global AudioContext services + controllers can reach
 drumMachineApp.service('contextService', function() {
   this.context = new AudioContext();
 });
 
+// Something to hold this rhythm
 drumMachineApp.service('rhythmService', function() {
   this.rhythm = {
     patterns: [
@@ -26,6 +28,7 @@ drumMachineApp.service('rhythmService', function() {
   };
 });
 
+// Place for some audio-specific code
 drumMachineApp.service('audioService', function(contextService, $q) {
   this.context = contextService.context;
 
@@ -73,6 +76,9 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
   // Beats per minute
   $scope.tempo = 128;
 
+  // Our actual rhythm pattern
+  $scope.rhythm = rhythmService.rhythm;
+
   // Process a change to a pattern
   // TODO: Can ng-model handle this?
   $scope.patternChange = function(sound, index) {
@@ -101,23 +107,32 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     $scope.offsetAtStart = $scope.cursor % 1;
     $scope.lastTick = $scope.context.currentTime - ($scope.cursor % 1) * $scope.getTickLength();
     $scope.playing = true;
-    $scope.renderPattern().then(function(buffer) {
-      var source = $scope.context.createBufferSource();
-      source.buffer = buffer;
-      source.connect($scope.context.destination);
-      source.loop = true;
-      source.start($scope.context.currentTime, $scope.cursor * $scope.getTickLength());
-      if ($scope.playbackSource) {
-        $scope.playbackSource.stop($scope.context.currentTime);
-      }
-      $scope.playbackSource = source;
-    });
+    $scope.renderPattern().then($scope.playLoop);
   };
 
+  $scope.playLoop = function(loopBuffer) {
+    var source = $scope.context.createBufferSource();
+    source.buffer = loopBuffer;
+    source.connect($scope.context.destination);
+    source.loop = true;
+    source.start($scope.context.currentTime, $scope.cursor * $scope.getTickLength());
+    if ($scope.playbackSource) {
+      $scope.playbackSource.stop($scope.context.currentTime);
+    }
+    $scope.playbackSource = source;
+  };
+
+  /*
+   * Return the time length of a tick on the drum machine (1/16th note)
+   */
   $scope.getTickLength = function() {
     return 60 / $scope.tempo / 4;
   };
 
+  /*
+   * Return a Promise that resolves with an audio buffer
+   * of the current loop.
+   */
   $scope.renderPattern = function() {
     var startTime = $scope.context.currentTime;
     return $q(function(resolve, reject) {
@@ -186,7 +201,6 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
   };
   $scope.update();
 
-  $scope.rhythm = rhythmService.rhythm;
 });
 
 
