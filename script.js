@@ -1,9 +1,7 @@
-var context = new AudioContext();
 var drumMachineApp = angular.module("drumMachineApp", []);
 drumMachineApp.controller("RhythmCtrl", function($scope) {
 
-  $scope.context = context;
-
+  $scope.context = new AudioContext();
 
   // stackoverflow.com/questions/12740329/math-functions-in-angular-bindings
   $scope.Math = Math;
@@ -16,27 +14,31 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
 
   // Process a change to a pattern
   // TODO: Can ng-model handle this?
-  $scope.change = function(sound, index) {
+  $scope.patternChange = function(sound, index) {
     $scope.rhythm.patterns.some(function(pattern) {
       if (pattern.sound === sound) {
         originalVal = pattern.beats[index];
         if (originalVal > 0) {
-          pattern.beats[index] = 1;
-        } else {
           pattern.beats[index] = 0;
+        } else {
+          pattern.beats[index] = 1;
         }
         return true;
       }
     });
+    if ($scope.playing) {
+      $scope.pause();
+      $scope.play();
+    }
   };
 
   // Begin the pattern running
   $scope.play = function() {
     // Remember where we started this play (to keep track of where the
     // actual cursor is)
-    $scope.startedPlaying = context.currentTime;
+    $scope.startedPlaying = $scope.context.currentTime;
     $scope.offsetAtStart = $scope.cursor % 1;
-    $scope.lastTick = context.currentTime - ($scope.cursor % 1) * $scope.getTickLength();
+    $scope.lastTick = $scope.context.currentTime - ($scope.cursor % 1) * $scope.getTickLength();
     $scope.playing = true;
     $scope.renderPattern().then(function(buffer) {
       var source = $scope.context.createBufferSource();
@@ -56,13 +58,13 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
   };
 
   $scope._buffers = {};
-  getBuffer("snare.wav").then(function(buffer) {
+  loadBuffer("snare.wav").then(function(buffer) {
     $scope._buffers["snare"] = buffer;
   });
-  getBuffer("kick.wav").then(function(buffer) {
+  loadBuffer("kick.wav").then(function(buffer) {
     $scope._buffers["kick"] = buffer;
   });
-  getBuffer("hat.wav").then(function(buffer) {
+  loadBuffer("hat.wav").then(function(buffer) {
     $scope._buffers["hat"] = buffer;
   });
 
@@ -71,10 +73,11 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
   };
 
   $scope.renderPattern = function() {
+    var startTime = $scope.context.currentTime;
     return new Promise(function(resolve, reject) {
       var tickLength = $scope.getTickLength();
-      if ($scope.tempo <= 0) {
-        reject(new Error("Invalid tempo"));
+      if ($scope.tempo < 10) {
+        reject(new Error("Tempo is... too slow."));
       }
       var context = new OfflineAudioContext(1, 16 * tickLength * 44100, 44100);
       $scope.rhythm.patterns.forEach(function(pattern) {
@@ -92,6 +95,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
       context.startRendering();
       context.oncomplete = function(e) {
         resolve(e.renderedBuffer);
+        console.log("Rendering loop took " + ($scope.context.currentTime - startTime) + "s");
       };
     });
   };
@@ -104,7 +108,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
 
     var tickLength = $scope.getTickLength();
     // FIXME: this isn't quite right
-    $scope.cursor += ((context.currentTime - $scope.startedPlaying) % tickLength) / tickLength;
+    $scope.cursor += (($scope.context.currentTime - $scope.startedPlaying) % tickLength) / tickLength;
     $scope.cursor = $scope.cursor % 16;
 
 
@@ -124,7 +128,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
   $scope.update = function() {
     if ($scope.playing) {
       var tickLength = $scope.getTickLength();
-      while (context.currentTime > ($scope.lastTick + tickLength)) {
+      while ($scope.context.currentTime > ($scope.lastTick + tickLength)) {
         $scope.lastTick = $scope.lastTick + tickLength;
         $scope.cursor++;
         $scope.cursor = $scope.cursor % 16;
@@ -154,7 +158,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope) {
 });
 
 
-function getBuffer(url, context) {
+function loadBuffer(url, context) {
   if (!context) {
     context = new OfflineAudioContext(2, 1, 44100);
   }
@@ -166,4 +170,3 @@ function getBuffer(url, context) {
     });
   });
 }
-
