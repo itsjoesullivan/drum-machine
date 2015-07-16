@@ -2,9 +2,67 @@ AudioContext = window.AudioContext || webkitAudioContext;
 OfflineAudioContext = window.OfflineAudioContext || webkitOfflineAudioContext;
 
 var drumMachineApp = angular.module("drumMachineApp", []);
-drumMachineApp.controller("RhythmCtrl", function($scope, $q) {
 
-  $scope.context = new AudioContext();
+drumMachineApp.service('contextService', function() {
+  this.context = new AudioContext();
+});
+
+drumMachineApp.service('rhythmService', function() {
+  this.rhythm = {
+    patterns: [
+      {
+        sound: "kick",
+        beats: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
+      },
+      {
+        sound: "snare",
+        beats: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
+      },
+      {
+        sound: "hat",
+        beats: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0]
+      }
+    ]
+  };
+});
+
+drumMachineApp.service('audioService', function(contextService, $q) {
+  this.context = contextService.context;
+
+  this.loadBuffer = function(url) {
+    var context = new OfflineAudioContext(2, 1, 44100);
+    return $q(function(resolve, reject) {
+      var request = new XMLHttpRequest();
+      request.open('GET', url, true);
+      request.responseType = 'arraybuffer';
+      request.onload = function() {
+        context.decodeAudioData(request.response, resolve, reject);
+      };
+      request.onerror = reject;
+      request.send();
+    });
+  };
+
+  this._buffers = {};
+  this.getBuffer = function(name) {
+    return this._buffers[name];
+  };
+
+  this.loadBuffer("snare.wav").then(function(buffer) {
+    this._buffers["snare"] = buffer;
+  }.bind(this));
+  this.loadBuffer("kick.wav").then(function(buffer) {
+    this._buffers["kick"] = buffer;
+  }.bind(this));
+  this.loadBuffer("hat.wav").then(function(buffer) {
+    this._buffers["hat"] = buffer;
+  }.bind(this));
+
+});
+
+drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, audioService, rhythmService) {
+
+  $scope.context = contextService.context;
 
   // stackoverflow.com/questions/12740329/math-functions-in-angular-bindings
   $scope.Math = Math;
@@ -60,35 +118,6 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q) {
     return 60 / $scope.tempo / 4;
   };
 
-  $scope.loadBuffer = function(url) {
-    var context = new OfflineAudioContext(2, 1, 44100);
-    return $q(function(resolve, reject) {
-      var request = new XMLHttpRequest();
-      request.open('GET', url, true);
-      request.responseType = 'arraybuffer';
-      request.onload = function() {
-        context.decodeAudioData(request.response, resolve, reject);
-      };
-      request.onerror = reject;
-      request.send();
-    });
-  };
-
-  $scope._buffers = {};
-  $scope.loadBuffer("snare.wav").then(function(buffer) {
-    $scope._buffers["snare"] = buffer;
-  });
-  $scope.loadBuffer("kick.wav").then(function(buffer) {
-    $scope._buffers["kick"] = buffer;
-  });
-  $scope.loadBuffer("hat.wav").then(function(buffer) {
-    $scope._buffers["hat"] = buffer;
-  });
-
-  $scope.getBuffer = function(name) {
-    return $scope._buffers[name];
-  };
-
   $scope.renderPattern = function() {
     var startTime = $scope.context.currentTime;
     return $q(function(resolve, reject) {
@@ -98,7 +127,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q) {
       }
       var context = new OfflineAudioContext(1, 16 * tickLength * 44100, 44100);
       $scope.rhythm.patterns.forEach(function(pattern) {
-        var buffer = $scope.getBuffer(pattern.sound);
+        var buffer = audioService.getBuffer(pattern.sound);
         pattern.beats.forEach(function(beat, i) {
           if (beat > 0) {
             var source = context.createBufferSource();
@@ -130,7 +159,6 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q) {
     $scope.cursor += (($scope.context.currentTime - $scope.startedPlaying) % tickLength) / tickLength;
     $scope.cursor = $scope.cursor % 16;
 
-
     $scope.playing = false;
   };
 
@@ -158,22 +186,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q) {
   };
   $scope.update();
 
-  $scope.rhythm = {
-    patterns: [
-      {
-        sound: "kick",
-        beats: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
-      },
-      {
-        sound: "snare",
-        beats: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
-      },
-      {
-        sound: "hat",
-        beats: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0]
-      }
-    ]
-  };
+  $scope.rhythm = rhythmService.rhythm;
 });
 
 
