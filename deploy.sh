@@ -1,5 +1,6 @@
 # Run tests
-npm run test
+# (stackoverflow.com/questions/3822621/how-to-exit-if-a-command-failed)
+npm run test || { echo 'Karma test failed, aborting deploy.' ; exit 1; }
 
 # Move to gh-pages
 git checkout gh-pages
