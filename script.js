@@ -76,7 +76,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
   $scope.cursor = 0;
 
   // Beats per minute
-  $scope.tempo = 121;
+  $scope.tempo = 128;
 
   // Our actual rhythm pattern
   $scope.rhythm = rhythmService.rhythm;
