@@ -12,4 +12,8 @@ git checkout master kick.wav
 git checkout master snare.wav
 git checkout master hat.wav
 
+# Push to origin
 git push origin gh-pages
+
+# Return to master
+git checkout master
