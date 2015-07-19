@@ -47,10 +47,12 @@ drumMachineApp.service('audioService', function(contextService, $q) {
   };
 
   this._buffers = {};
+  // Retrieve a pre-loaded buffer
   this.getBuffer = function(name) {
     return this._buffers[name];
   };
 
+  // Load up the sounds... app will fail in an ugly way if this doesn't work.
   this.loadBuffer("snare.wav").then(function(buffer) {
     this._buffers["snare"] = buffer;
   }.bind(this));
@@ -88,6 +90,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
         if (originalVal > 0) {
           pattern.beats[index] = 0;
         } else {
+          // We could put velocity here, perhaps based on the cmd key
           pattern.beats[index] = 1;
         }
         return true;
@@ -104,12 +107,14 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     // Remember where we started this play (to keep track of where the
     // actual cursor is)
     $scope.startedPlaying = $scope.context.currentTime;
-    $scope.offsetAtStart = $scope.cursor % 1;
     $scope.lastTick = $scope.context.currentTime - ($scope.cursor % 1) * $scope.getTickLength();
+    $scope.cursorAtPlay = $scope.cursor;
     $scope.playing = true;
     $scope.renderPattern().then($scope.playLoop);
   };
 
+  // Initiate playback of the rendered loop buffer, setting
+  // it to $scope.playbackSource for later stop()ing
   $scope.playLoop = function(loopBuffer) {
     var source = $scope.context.createBufferSource();
     source.buffer = loopBuffer;
@@ -165,15 +170,18 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
 
   // Pause the pattern
   $scope.pause = function() {
+    // Stop playback
     if ($scope.playbackSource) {
       $scope.playbackSource.stop($scope.context.currentTime);
     }
 
+    // Adjust cursor position so that we can
+    // resume between ticks.
     var tickLength = $scope.getTickLength();
-    // FIXME: this isn't quite right
-    $scope.cursor += (($scope.context.currentTime - $scope.startedPlaying) % tickLength) / tickLength;
-    $scope.cursor = $scope.cursor % 16;
-
+    // We played on this setting for this long.
+    var playedTime = $scope.context.currentTime - $scope.startedPlaying;
+    var playedTicks = playedTime / tickLength;
+    $scope.cursor = ($scope.cursorAtPlay + playedTicks) % 16;
     $scope.playing = false;
   };
 
@@ -190,6 +198,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
   $scope.update = function() {
     if ($scope.playing) {
       var tickLength = $scope.getTickLength();
+      // Add ticks that have passed since last check.
       while ($scope.context.currentTime > ($scope.lastTick + tickLength)) {
         $scope.lastTick = $scope.lastTick + tickLength;
         $scope.cursor++;
@@ -199,8 +208,6 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     }
     requestAnimationFrame($scope.update);
   };
+  // Begin animation loop.
   $scope.update();
-
 });
-
-
