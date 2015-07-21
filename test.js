@@ -1,3 +1,4 @@
+window.context = new AudioContext();
 describe("contextService", function() {
   beforeEach(module("drumMachineApp"));
   var contextServiceHandle;
@@ -51,12 +52,20 @@ describe("RhythmCtrl", function() {
     it('calls updateCursor', function() {
       spyOn(scope, 'updateCursor');
       scope.playing = true;
+      scope.stopPlayback = function() {};
       scope.pause();
       expect(scope.updateCursor).toHaveBeenCalled();
+    });
+    it('calls stopPlayback', function() {
+      spyOn(scope, 'stopPlayback');
+      scope.playing = true;
+      scope.pause();
+      expect(scope.stopPlayback).toHaveBeenCalled();
     });
     it('does not call updateCursor if not playing', function() {
       spyOn(scope, 'updateCursor');
       scope.playing = false;
+      scope.stopPlayback = function() {};
       scope.pause();
       expect(scope.updateCursor).not.toHaveBeenCalled();
     });

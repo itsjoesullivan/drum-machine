@@ -5,7 +5,7 @@ var drumMachineApp = angular.module("drumMachineApp", []);
 
 // A global AudioContext services + controllers can reach
 drumMachineApp.service('contextService', function() {
-  this.context = new AudioContext();
+  this.context = window.context || new AudioContext();
 });
 
 // Something to hold this rhythm
