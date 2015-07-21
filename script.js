@@ -96,13 +96,17 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
         return true;
       }
     });
-    if ($scope.playing) {
-      $scope.pause();
-      $scope.play();
-    }
+    $scope.refreshAudio();
   };
 
+  // Process a change to the tempo.
   $scope.tempoChange = function() {
+    $scope.refreshAudio();
+  };
+
+  // If playing, pause and re-play
+  // to generate a new audio loop.
+  $scope.refreshAudio = function() {
     if ($scope.playing) {
       $scope.pause();
       $scope.play();
