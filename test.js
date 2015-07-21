@@ -76,4 +76,22 @@ describe("RhythmCtrl", function() {
       expect(scope.updateCursor).not.toHaveBeenCalled();
     });
   });
+  describe('refreshAudio', function() {
+    it('pauses and plays if playing', function() {
+      spyOn(scope, 'pause');
+      spyOn(scope, 'play');
+      scope.playing = true;
+      scope.refreshAudio();
+      expect(scope.play).toHaveBeenCalled();
+      expect(scope.pause).toHaveBeenCalled();
+    });
+    it('does not pause or play if not playing', function() {
+      spyOn(scope, 'pause');
+      spyOn(scope, 'play');
+      scope.playing = false;
+      scope.refreshAudio();
+      expect(scope.play).not.toHaveBeenCalled();
+      expect(scope.pause).not.toHaveBeenCalled();
+    });
+  });
 });
