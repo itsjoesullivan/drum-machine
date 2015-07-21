@@ -54,5 +54,11 @@ describe("RhythmCtrl", function() {
       scope.pause();
       expect(scope.updateCursor).toHaveBeenCalled();
     });
+    it('does not call updateCursor if not playing', function() {
+      spyOn(scope, 'updateCursor');
+      scope.playing = false;
+      scope.pause();
+      expect(scope.updateCursor).not.toHaveBeenCalled();
+    });
   });
 });
