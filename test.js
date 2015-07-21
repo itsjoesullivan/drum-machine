@@ -47,4 +47,12 @@ describe("RhythmCtrl", function() {
       expect(scope.getTickLength()).toEqual(1/4);
     });
   });
+  describe('pause', function() {
+    it('calls updateCursor', function() {
+      spyOn(scope, 'updateCursor');
+      scope.playing = true;
+      scope.pause();
+      expect(scope.updateCursor).toHaveBeenCalled();
+    });
+  });
 });

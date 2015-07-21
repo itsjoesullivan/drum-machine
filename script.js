@@ -181,13 +181,16 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     $scope.playing = false;
   };
 
+  /* Update cursor on pause
+   * TODO: better name?
+   *
+   * Adjusts the cursor position in order to maintain
+   * sub-tick precision.
+   */
   $scope.updateCursor = function() {
-    // Adjust cursor position so that we can
-    // resume between ticks.
-    var tickLength = $scope.getTickLength();
-    // We played on this setting for this long.
+    // Loop ran for this long
     var playedTime = $scope.context.currentTime - $scope.startedPlaying;
-    var playedTicks = playedTime / tickLength;
+    var playedTicks = playedTime / $scope.getTickLength();
     $scope.cursor = ($scope.cursorAtPlay + playedTicks) % 16;
   };
 
