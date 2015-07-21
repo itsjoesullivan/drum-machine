@@ -173,12 +173,15 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     if (!$scope.playing) {
       return;
     }
-
     // Stop playback
     if ($scope.playbackSource) {
       $scope.playbackSource.stop($scope.context.currentTime);
     }
+    $scope.updateCursor();
+    $scope.playing = false;
+  };
 
+  $scope.updateCursor = function() {
     // Adjust cursor position so that we can
     // resume between ticks.
     var tickLength = $scope.getTickLength();
@@ -186,7 +189,6 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     var playedTime = $scope.context.currentTime - $scope.startedPlaying;
     var playedTicks = playedTime / tickLength;
     $scope.cursor = ($scope.cursorAtPlay + playedTicks) % 16;
-    $scope.playing = false;
   };
 
   // Pause and return to beginning
