@@ -123,9 +123,19 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     $scope.lastTick = $scope.context.currentTime - ($scope.cursor % 1) * $scope.getTickLength();
     // Remember where the cursor was when playback began.
     $scope.cursorAtPlay = $scope.cursor;
+    $scope.startPlayback();
+  };
+
+  // Initiate audio playback, then set playing flag to true.
+  $scope.startPlayback = function() {
     $scope.renderPattern().then($scope.playLoop).then(function() {
       $scope.playing = true;
     });
+  };
+
+  // Stop audio playback
+  $scope.stopPlayback = function() {
+    $scope.playbackSource.stop($scope.context.currentTime);
   };
 
   // Initiate playback of the rendered loop buffer, setting
@@ -193,10 +203,6 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     $scope.playing = false;
   };
 
-  // Stop audio playback
-  $scope.stopPlayback = function() {
-    $scope.playbackSource.stop($scope.context.currentTime);
-  };
 
   /* Update cursor on pause
    * TODO: better name?
