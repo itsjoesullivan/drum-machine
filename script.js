@@ -102,15 +102,26 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     }
   };
 
+  $scope.tempoChange = function() {
+    if ($scope.playing) {
+      $scope.pause();
+      $scope.play();
+    }
+  };
+
   // Begin the pattern running
   $scope.play = function() {
     // Remember where we started this play (to keep track of where the
     // actual cursor is)
     $scope.startedPlaying = $scope.context.currentTime;
+    // Determine when the last tick would have occurred,
+    // in order to know when to increment the cursor.
     $scope.lastTick = $scope.context.currentTime - ($scope.cursor % 1) * $scope.getTickLength();
+    // Remember where the cursor was when playback began.
     $scope.cursorAtPlay = $scope.cursor;
-    $scope.playing = true;
-    $scope.renderPattern().then($scope.playLoop);
+    $scope.renderPattern().then($scope.playLoop).then(function() {
+      $scope.playing = true;
+    });
   };
 
   // Initiate playback of the rendered loop buffer, setting
@@ -170,19 +181,30 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
 
   // Pause the pattern
   $scope.pause = function() {
-    // Stop playback
-    if ($scope.playbackSource) {
-      $scope.playbackSource.stop($scope.context.currentTime);
+    if (!$scope.playing) {
+      return;
     }
-
-    // Adjust cursor position so that we can
-    // resume between ticks.
-    var tickLength = $scope.getTickLength();
-    // We played on this setting for this long.
-    var playedTime = $scope.context.currentTime - $scope.startedPlaying;
-    var playedTicks = playedTime / tickLength;
-    $scope.cursor = ($scope.cursorAtPlay + playedTicks) % 16;
+    $scope.stopPlayback();
+    $scope.updateCursor();
     $scope.playing = false;
+  };
+
+  // Stop audio playback
+  $scope.stopPlayback = function() {
+    $scope.playbackSource.stop($scope.context.currentTime);
+  };
+
+  /* Update cursor on pause
+   * TODO: better name?
+   *
+   * Adjusts the cursor position in order to maintain
+   * sub-tick precision.
+   */
+  $scope.updateCursor = function() {
+    // Loop ran for this long
+    var playedTime = $scope.context.currentTime - $scope.startedPlaying;
+    var playedTicks = playedTime / $scope.getTickLength();
+    $scope.cursor = ($scope.cursorAtPlay + playedTicks) % 16;
   };
 
   // Pause and return to beginning
