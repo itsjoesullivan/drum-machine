@@ -110,7 +110,9 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     $scope.lastTick = $scope.context.currentTime - ($scope.cursor % 1) * $scope.getTickLength();
     $scope.cursorAtPlay = $scope.cursor;
     $scope.playing = true;
-    $scope.renderPattern().then($scope.playLoop);
+    $scope.renderPattern().then($scope.playLoop).then(function() {
+      $scope.playing = true;
+    });
   };
 
   // Initiate playback of the rendered loop buffer, setting
@@ -172,10 +174,6 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
   $scope.pause = function() {
     if (!$scope.playing) {
       return;
-    }
-    // Stop playback
-    if ($scope.playbackSource) {
-      $scope.playbackSource.stop($scope.context.currentTime);
     }
     $scope.updateCursor();
     $scope.playing = false;
