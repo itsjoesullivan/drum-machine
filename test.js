@@ -7,6 +7,9 @@ describe("contextService", function() {
     scope = $rootScope.$new();
     contextServiceHandle = contextService;
   }));
+  afterEach(function() {
+    contextServiceHandle.context.close();
+  });
   it('has a context AudioContext', function() {
     expect(contextServiceHandle.context instanceof AudioContext).toEqual(true);
   });
@@ -35,6 +38,9 @@ describe("RhythmCtrl", function() {
       $scope: scope
     });
   }));
+  afterEach(function() {
+    scope.context.close();
+  });
 
   it('initializes with tempo 128', function() {
     expect(scope.tempo).toEqual(128);
