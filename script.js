@@ -102,7 +102,6 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     }
   };
 
-  // If tempo changes, restart.
   $scope.tempoChange = function() {
     if ($scope.playing) {
       $scope.pause();
@@ -185,6 +184,7 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     if (!$scope.playing) {
       return;
     }
+    $scope.playbackSource.stop($scope.context.currentTime);
     $scope.updateCursor();
     $scope.playing = false;
   };
