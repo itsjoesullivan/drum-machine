@@ -170,6 +170,10 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
 
   // Pause the pattern
   $scope.pause = function() {
+    if (!$scope.playing) {
+      return;
+    }
+
     // Stop playback
     if ($scope.playbackSource) {
       $scope.playbackSource.stop($scope.context.currentTime);
