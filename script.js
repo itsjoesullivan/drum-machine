@@ -101,6 +101,11 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
 
   // Process a change to the tempo.
   $scope.tempoChange = function() {
+    if ($scope.tempo > 1000) {
+      $scope.tempo = 1000;
+    } else if ($scope.tempo < 10) {
+      $scope.tempo = 10;
+    }
     $scope.refreshAudio();
   };
 
@@ -167,9 +172,6 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     var startTime = $scope.context.currentTime;
     return $q(function(resolve, reject) {
       var tickLength = $scope.getTickLength();
-      if ($scope.tempo < 10) {
-        reject(new Error("Tempo is... too slow."));
-      }
       var context = new OfflineAudioContext(1, 16 * tickLength * 44100, 44100);
       $scope.rhythm.patterns.forEach(function(pattern) {
         var buffer = audioService.getBuffer(pattern.sound);
@@ -186,9 +188,6 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
       context.startRendering();
       context.oncomplete = function(e) {
         resolve(e.renderedBuffer);
-        console.log("Rendering loop took " +
-          ($scope.context.currentTime - startTime).toFixed(3) * 1000 +
-        "ms");
       };
     });
   };
