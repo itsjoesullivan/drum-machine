@@ -107,9 +107,11 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     // Remember where we started this play (to keep track of where the
     // actual cursor is)
     $scope.startedPlaying = $scope.context.currentTime;
+    // Determine when the last tick would have occurred,
+    // in order to know when to increment the cursor.
     $scope.lastTick = $scope.context.currentTime - ($scope.cursor % 1) * $scope.getTickLength();
+    // Remember where the cursor was when playback began.
     $scope.cursorAtPlay = $scope.cursor;
-    $scope.playing = true;
     $scope.renderPattern().then($scope.playLoop).then(function() {
       $scope.playing = true;
     });
