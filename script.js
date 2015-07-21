@@ -133,6 +133,11 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     });
   };
 
+  // Stop audio playback
+  $scope.stopPlayback = function() {
+    $scope.playbackSource.stop($scope.context.currentTime);
+  };
+
   // Initiate playback of the rendered loop buffer, setting
   // it to $scope.playbackSource for later stop()ing
   $scope.playLoop = function(loopBuffer) {
@@ -198,10 +203,6 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     $scope.playing = false;
   };
 
-  // Stop audio playback
-  $scope.stopPlayback = function() {
-    $scope.playbackSource.stop($scope.context.currentTime);
-  };
 
   /* Update cursor on pause
    * TODO: better name?
