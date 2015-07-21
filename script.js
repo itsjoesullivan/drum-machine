@@ -184,9 +184,14 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     if (!$scope.playing) {
       return;
     }
-    $scope.playbackSource.stop($scope.context.currentTime);
+    $scope.stopPlayback();
     $scope.updateCursor();
     $scope.playing = false;
+  };
+
+  // Stop audio playback
+  $scope.stopPlayback = function() {
+    $scope.playbackSource.stop($scope.context.currentTime);
   };
 
   /* Update cursor on pause
