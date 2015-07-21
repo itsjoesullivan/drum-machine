@@ -6,13 +6,14 @@ npm run test || { echo 'Karma test failed, aborting deploy.' ; exit 1; }
 git checkout gh-pages
 
 # Checkout new files from master
-echo "Checking out new files"
 git checkout master angular-1.4.3.js
 git checkout master index.html
 git checkout master script.js
 git checkout master kick.wav
 git checkout master snare.wav
 git checkout master hat.wav
+
+git commit -m "Deploy"
 
 # Push to origin
 git push origin gh-pages
