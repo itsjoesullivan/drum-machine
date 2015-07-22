@@ -120,6 +120,9 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
 
   // Begin the pattern running
   $scope.play = function() {
+    if (!$scope.safariAwake) {
+      $scope.wakeupSafari();
+    }
     // Remember where we started this play (to keep track of where the
     // actual cursor is)
     $scope.startedPlaying = $scope.context.currentTime;
@@ -129,6 +132,18 @@ drumMachineApp.controller("RhythmCtrl", function($scope, $q, contextService, aud
     // Remember where the cursor was when playback began.
     $scope.cursorAtPlay = $scope.cursor;
     $scope.startPlayback();
+  };
+
+  // We need to tie a user event to a sound event (synchronously)
+  // so that iOS is confident the user wants the sounds.
+  $scope.safariAwake = false;
+  $scope.wakeupSafari = function() {
+    var buffer = audioService.getBuffer('hat');
+    var source = $scope.context.createBufferSource();
+    source.buffer = buffer;
+    source.start(0);
+    source.stop(0);
+    $scope.safariAwake = true;
   };
 
   // Initiate audio playback, then set playing flag to true.
